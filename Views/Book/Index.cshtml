@@ -1,0 +1,71 @@
+@model IEnumerable<Book>
+@{
+    ViewData["Title"] = "Books";
+}
+
+<div class="books-header">
+    <h2>📚 Books</h2>
+    <p class="text-muted">Explore our collection of amazing books</p>
+</div>
+
+<div class="books-grid">
+    @foreach (var item in Model)
+    {
+        <div class="book-card">
+            <div class="book-image-wrapper">
+                @if (!string.IsNullOrEmpty(item.Image))
+                {
+                    <img src="@item.Image" alt="@item.Title" class="book-image" />
+                }
+                else
+                {
+                    <div class="book-image-placeholder">
+                        <span>📖</span>
+                    </div>
+                }
+                <div class="book-overlay">
+                    <a asp-action="Details" asp-route-id="@item.BookId" class="btn-view">View Details</a>
+                </div>
+            </div>
+            <div class="book-info">
+                <h5 class="book-title" title="@item.Title">@item.Title</h5>
+
+                <div class="book-copies">
+                    <span class="copies-count">@item.AvailableCopies</span>
+                    <span class="copies-total">/ @item.TotalCopies</span>
+                </div>
+
+                <div class="book-status">
+                    @if (item.AvailableCopies > 0)
+                    {
+                        <span class="badge-available">🟢 Available</span>
+                    }
+                    else
+                    {
+                        <span class="badge-unavailable">🔴 Out of Stock</span>
+                    }
+                </div>
+
+                <div class="book-category">
+                    <span class="category-tag">@item.Category?.Name</span>
+                </div>
+
+                <div class="book-author">
+                    <small>by @item.Author?.FirstName @item.Author?.LastName</small>
+                </div>
+
+                <div class="book-actions">
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.BookId" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.BookId" class="btn btn-sm btn-danger">Delete</a>
+                    }
+                    else if (item.AvailableCopies > 0 && User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-controller="Borrowing" asp-action="Create" class="btn btn-sm btn-success w-100">Borrow Now</a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

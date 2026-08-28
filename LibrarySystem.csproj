@@ -16,4 +16,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Author\" />
+    <Folder Include="Views\Borrowing\" />
+    <Folder Include="Views\Category\" />
+  </ItemGroup>
+
 </Project>

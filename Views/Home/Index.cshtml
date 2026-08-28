@@ -1,8 +1,43 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Welcome to Library Management</h1>
+    <p class="lead">Manage books, authors, categories and borrowing records easily.</p>
+    <hr />
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Books</h5>
+                    <a asp-controller="Book" asp-action="Index" class="btn btn-primary">View Books</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Authors</h5>
+                    <a asp-controller="Author" asp-action="Index" class="btn btn-primary">View Authors</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Categories</h5>
+                    <a asp-controller="Category" asp-action="Index" class="btn btn-primary">View Categories</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Available</h5>
+                    <a asp-controller="Book" asp-action="Available" class="btn btn-success">Available Books</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
