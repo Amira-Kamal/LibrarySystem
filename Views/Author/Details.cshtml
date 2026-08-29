@@ -1,52 +1,75 @@
 @model LibrarySystem.Models.Author
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Author Details";
 }
 
-<h1>Details</h1>
+<div class="row justify-content-center">
+    <div class="col-md-7">
 
-<div>
-    <h4>Author</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.FirstName)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.FirstName)
-        </dd>
-    </dl>
-    <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.LastName)
-    </dt>
-    <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.LastName)
-    </dd>
-</dl>
-<dt class="col-sm-2">
-    @Html.DisplayNameFor(model => model.Bio)
-</dt>
-<dd class="col-sm-10">
-    @Html.DisplayFor(model => model.Bio)
-</dd>
-</dl>
-<dt class="col-sm-2">
-    @Html.DisplayNameFor(model => model.Nationality)
-</dt>
-<dd class="col-sm-10">
-    @Html.DisplayFor(model => model.Nationality)
-</dd>
-</dl>
-<dt class="col-sm-2">
-    @Html.DisplayNameFor(model => model.Books)
-</dt>
-<dd class="col-sm-10">
-    @Html.DisplayFor(model => model.Books)
-</dd>
-</dl>
+        
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+
+                <h2 class="mb-3">Author Details</h2>
+
+                <hr />
+
+                <dl class="row">
+
+                    <dt class="col-sm-4">
+                        First Name
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Model.FirstName
+                    </dd>
+
+                    <dt class="col-sm-4">
+                        Last Name
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Model.LastName
+                    </dd>
+
+                    <dt class="col-sm-4">
+                        Bio
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Model.Bio
+                    </dd>
+
+                    <dt class="col-sm-4">
+                        Nationality
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Model.Nationality
+                    </dd>
+
+                </dl>
+
+                <div class="mt-4">
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Edit"
+                           asp-route-id="@Model.AuthorId"
+                           class="btn btn-warning">
+                            Edit
+                        </a>
+                    }
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary">
+                        Back to List
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    
+
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.AuthorId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+

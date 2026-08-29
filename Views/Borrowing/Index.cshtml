@@ -1,66 +1,108 @@
 @model IEnumerable<LibrarySystem.Models.Borrowing>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Borrowings";
 }
 
-<h1>Index</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>Borrowings</h1>
+        <p class="text-muted mb-0">Manage your borrowed books</p>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.BookId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Book)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UserId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.BorrowDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ReturnDate)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+    
+    <a asp-action="Create" class="btn btn-primary">
+        + Borrow Book
+    </a>
+    
+
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
             <tr>
-                <td>
-                    @Html.DisplayFor(model => item.BookId)
-                </td>
-                <td>
-                    @Html.DisplayFor(model => item.Book)
-                </td>
-                <td>
-                    @Html.DisplayFor(model => item.UserId)
-                </td>
-                <td>
-                    @Html.DisplayFor(model => item.User)
-                </td>
-                <td>
-                    @Html.DisplayFor(model => item.BorrowDate)
-                </td>
-                <td>
-                    @Html.DisplayFor(model => item.ReturnDate)
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
+                <th>Book</th>
+
+                @if (User.IsInRole("Admin"))
+                {
+                    <th>User</th>
+                }
+
+                <th>Borrow Date</th>
+                <th>Return Date</th>
+                <th>Status</th>
+                <th class="text-center">Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @item.Book?.Title
+                    </td>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <td>
+                            @item.User?.FullName
+                        </td>
+                    }
+
+                    <td>
+                        @item.BorrowDate.ToString("dd/MM/yyyy")
+                    </td>
+
+                    <td>
+                        @if (item.ReturnDate.HasValue)
+                        {
+                            @item.ReturnDate.Value.ToString("dd/MM/yyyy")
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not returned</span>
+                        }
+                    </td>
+
+                    <td>
+                        @if (item.ReturnDate.HasValue)
+                        {
+                            <span class="badge bg-success">Returned</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">Borrowed</span>
+                        }
+                    </td>
+
+                    <td class="text-center">
+                        <a asp-action="Details"
+                           asp-route-id="@item.Id"
+                           class="btn btn-info btn-sm text-white">
+                            Details
+                        </a>
+
+                        @if (!item.ReturnDate.HasValue)
+                        {
+                            <form asp-action="Return"
+                                  asp-route-id="@item.Id"
+                                  method="post"
+                                  class="d-inline">
+
+                                <button type="submit"
+                                        class="btn btn-success btn-sm">
+                                    Return
+                                </button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    
+
+</div>
+

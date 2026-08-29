@@ -1,5 +1,6 @@
 ﻿using LibrarySystem.Data;
 using LibrarySystem.Models;
+using LibrarySystem.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,24 +13,25 @@ namespace LibrarySystem.Controllers;
 public class BorrowingController : Controller
 {
     private readonly LibraryDbContext _context;
+    private readonly IBorrowingRepository _borrowingRepository;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public BorrowingController(
         LibraryDbContext context,
+        IBorrowingRepository borrowingRepository,
         UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _borrowingRepository = borrowingRepository;
         _userManager = userManager;
     }
 
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Index()
     {
-        var borrowings = _context.Borrowings
-            .Include(b => b.Book)
-            .Include(b => b.User);
+        var borrowings = await _borrowingRepository.GetAllAsync();
 
-        return View(await borrowings.ToListAsync());
+        return View(borrowings);
     }
 
     public async Task<IActionResult> Details(int? id)
@@ -37,10 +39,7 @@ public class BorrowingController : Controller
         if (id == null)
             return NotFound();
 
-        var borrowing = await _context.Borrowings
-            .Include(b => b.Book)
-            .Include(b => b.User)
-            .FirstOrDefaultAsync(m => m.Id == id);
+        var borrowing = await _borrowingRepository.GetByIdAsync(id.Value);
 
         if (borrowing == null)
             return NotFound();
@@ -53,12 +52,14 @@ public class BorrowingController : Controller
         return View(borrowing);
     }
 
-    public IActionResult Create()
+    public IActionResult Create(int? bookId)
     {
         ViewData["BookId"] = new SelectList(
-            _context.Books.Where(b => b.AvailableCopies > 0),
+            _context.Books
+                .Where(b => b.AvailableCopies > 0),
             "BookId",
-            "Title"
+            "Title",
+            bookId
         );
 
         return View();
@@ -70,75 +71,93 @@ public class BorrowingController : Controller
     {
         ModelState.Remove("Book");
         ModelState.Remove("User");
+        ModelState.Remove("UserId");
 
-        var book = await _context.Books.FindAsync(borrowing.BookId);
+        var book = await _context.Books
+            .FirstOrDefaultAsync(b => b.BookId == borrowing.BookId);
 
-        if (book == null || book.AvailableCopies <= 0)
+        if (book == null)
         {
-            ModelState.AddModelError("", "Book is not available.");
+            ModelState.AddModelError("", "Please select a valid book.");
+        }
+        else if (book.AvailableCopies <= 0)
+        {
+            ModelState.AddModelError("", "This book is not available.");
         }
 
-        if (ModelState.IsValid && book != null && book.AvailableCopies > 0)
+        if (!ModelState.IsValid)
         {
-            borrowing.UserId = _userManager.GetUserId(User)!;
-            borrowing.BorrowDate = DateTime.Now;
-            borrowing.ReturnDate = null;
+            ViewData["BookId"] = new SelectList(
+                _context.Books
+                    .Where(b => b.AvailableCopies > 0),
+                "BookId",
+                "Title",
+                borrowing.BookId
+            );
 
-            book.AvailableCopies--;
-
-            _context.Borrowings.Add(borrowing);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(MyBorrowings));
+            return View(borrowing);
         }
 
-        ViewData["BookId"] = new SelectList(
-            _context.Books.Where(b => b.AvailableCopies > 0),
-            "BookId",
-            "Title",
-            borrowing.BookId
-        );
+        var userId = _userManager.GetUserId(User);
 
-        return View(borrowing);
+        if (userId == null)
+            return Challenge();
+
+        borrowing.UserId = userId;
+        borrowing.BorrowDate = DateTime.Now;
+        borrowing.ReturnDate = null;
+
+        book.AvailableCopies--;
+
+        await _borrowingRepository.AddAsync(borrowing);
+        await _borrowingRepository.SaveAsync();
+
+        return RedirectToAction(nameof(MyBorrowings));
     }
 
     public async Task<IActionResult> MyBorrowings()
     {
         var userId = _userManager.GetUserId(User);
 
-        var borrowings = _context.Borrowings
-            .Include(b => b.Book)
-            .Where(b => b.UserId == userId && b.ReturnDate == null);
+        if (userId == null)
+            return Challenge();
 
-        return View(await borrowings.ToListAsync());
+        var borrowings =
+            await _borrowingRepository.GetByUserIdAsync(userId);
+
+        return View(borrowings);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Return(int id)
     {
-        var borrowing = await _context.Borrowings
-            .Include(b => b.Book)
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var borrowing =
+            await _borrowingRepository.GetByIdAsync(id);
 
         if (borrowing == null)
             return NotFound();
 
         var currentUserId = _userManager.GetUserId(User);
 
-        if (!User.IsInRole("Admin") && borrowing.UserId != currentUserId)
+        if (!User.IsInRole("Admin") &&
+            borrowing.UserId != currentUserId)
             return Forbid();
 
         if (borrowing.ReturnDate != null)
         {
-            TempData["Error"] = "Book already returned.";
+            TempData["Error"] = "Book has already been returned.";
             return RedirectToAction(nameof(MyBorrowings));
         }
 
         borrowing.ReturnDate = DateTime.Now;
-        borrowing.Book.AvailableCopies++;
 
-        await _context.SaveChangesAsync();
+        if (borrowing.Book != null)
+        {
+            borrowing.Book.AvailableCopies++;
+        }
+
+        await _borrowingRepository.SaveAsync();
 
         return RedirectToAction(nameof(MyBorrowings));
     }

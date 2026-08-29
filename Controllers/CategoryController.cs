@@ -22,6 +22,7 @@ public class CategoryController : Controller
         return View(await _context.Categories.ToListAsync());
     }
 
+    
     [AllowAnonymous]
     public async Task<IActionResult> Details(int? id)
     {
@@ -29,7 +30,9 @@ public class CategoryController : Controller
             return NotFound();
 
         var category = await _context.Categories
-            .FirstOrDefaultAsync(m => m.CategoryId == id);
+            .Include(c => c.Books)
+            .ThenInclude(b => b.Author)
+            .FirstOrDefaultAsync(c => c.CategoryId == id);
 
         return category == null ? NotFound() : View(category);
     }

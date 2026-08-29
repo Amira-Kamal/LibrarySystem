@@ -1,59 +1,108 @@
 @model LibrarySystem.Models.Borrowing
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Borrowing Details";
 }
 
-<h1>Details</h1>
+<div class="row justify-content-center">
+    <div class="col-md-7">
 
-<div>
-    <h4>Borrowing</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.BookId)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.BookId)
-        </dd>
-    </dl>
-    <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.Book)
-    </dt>
-    <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.Book)
-    </dd>
-</dl>
-<dt class="col-sm-2">
-    @Html.DisplayNameFor(model => model.UserId)
-</dt>
-<dd class="col-sm-10">
-    @Html.DisplayFor(model => model.UserId)
-</dd>
-</dl>
-<dt class="col-sm-2">
-    @Html.DisplayNameFor(model => model.User)
-</dt>
-<dd class="col-sm-10">
-    @Html.DisplayFor(model => model.User)
-</dd>
-</dl>
-<dt class="col-sm-2">
-    @Html.DisplayNameFor(model => model.BorrowDate)
-</dt>
-<dd class="col-sm-10">
-    @Html.DisplayFor(model => model.BorrowDate)
-</dd>
-</dl>
-<dt class="col-sm-2">
-    @Html.DisplayNameFor(model => model.ReturnDate)
-</dt>
-<dd class="col-sm-10">
-    @Html.DisplayFor(model => model.ReturnDate)
-</dd>
-</dl>
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+
+                <h2 class="mb-3">?? Borrowing Details</h2>
+
+                <hr />
+
+                <dl class="row">
+
+                    <dt class="col-sm-4">
+                        Book
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Model.Book?.Title
+                    </dd>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <dt class="col-sm-4">
+                            User
+                        </dt>
+                        <dd class="col-sm-8">
+                            @Model.User?.FullName
+                        </dd>
+                    }
+
+                    <dt class="col-sm-4">
+                        Borrow Date
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Model.BorrowDate.ToString("dd/MM/yyyy")
+                    </dd>
+
+                    <dt class="col-sm-4">
+                        Return Date
+                    </dt>
+                    <dd class="col-sm-8">
+                        @if (Model.ReturnDate.HasValue)
+                        {
+                            @Model.ReturnDate.Value.ToString("dd/MM/yyyy")
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not returned yet</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">
+                        Status
+                    </dt>
+                    <dd class="col-sm-8">
+                        @if (Model.ReturnDate.HasValue)
+                        {
+                            <span class="badge bg-success">
+                                Returned
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">
+                                Borrowed
+                            </span>
+                        }
+                    </dd>
+
+                </dl>
+
+                <div class="mt-4">
+
+                    @if (!Model.ReturnDate.HasValue)
+                    {
+                        <form asp-action="Return"
+                              asp-route-id="@Model.Id"
+                              method="post"
+                              class="d-inline">
+
+                            <button type="submit"
+                                    class="btn btn-success">
+                                Return Book
+                            </button>
+
+                        </form>
+                    }
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary">
+                        Back to List
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    
+
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+

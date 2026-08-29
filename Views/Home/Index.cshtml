@@ -2,42 +2,128 @@
     ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome to Library Management</h1>
-    <p class="lead">Manage books, authors, categories and borrowing records easily.</p>
-    <hr />
-    <div class="row mt-4">
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Books</h5>
-                    <a asp-controller="Book" asp-action="Index" class="btn btn-primary">View Books</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Authors</h5>
-                    <a asp-controller="Author" asp-action="Index" class="btn btn-primary">View Authors</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Categories</h5>
-                    <a asp-controller="Category" asp-action="Index" class="btn btn-primary">View Categories</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Available</h5>
-                    <a asp-controller="Book" asp-action="Available" class="btn btn-success">Available Books</a>
-                </div>
-            </div>
-        </div>
+<div class="text-center py-5">
+    <h1 class="display-4 fw-bold">📚 Welcome to Library Management</h1>
+
+    
+    <p class="lead text-muted mt-3">
+        Explore books, discover authors, browse categories,
+        and manage your borrowing records easily.
+    </p>
+
+    <div class="mt-4">
+        <a asp-controller="Book"
+           asp-action="Index"
+           class="btn btn-primary btn-lg me-2">
+            Explore Books
+        </a>
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a asp-controller="Borrowing"
+               asp-action="MyBorrowings"
+               class="btn btn-outline-primary btn-lg">
+                My Borrowings
+            </a>
+        }
+        else
+        {
+            <a asp-controller="Account"
+               asp-action="Login"
+               class="btn btn-outline-primary btn-lg">
+                Login
+            </a>
+        }
     </div>
+    
+
 </div>
+
+<hr />
+
+<div class="container mt-5">
+
+    
+    <div class="row g-4 justify-content-center">
+
+        <!-- Books -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="home-card h-100 text-center">
+                <div class="home-icon">📚</div>
+
+                <h4>Books</h4>
+
+                <p>
+                    Explore our collection and discover your next favorite book.
+                </p>
+
+                <a asp-controller="Book"
+                   asp-action="Index"
+                   class="btn btn-primary">
+                    View Books
+                </a>
+            </div>
+        </div>
+
+        <!-- Authors -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="home-card h-100 text-center">
+                <div class="home-icon">✍️</div>
+
+                <h4>Authors</h4>
+
+                <p>
+                    Discover the authors behind your favorite books.
+                </p>
+
+                <a asp-controller="Author"
+                   asp-action="Index"
+                   class="btn btn-primary">
+                    View Authors
+                </a>
+            </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="home-card h-100 text-center">
+                <div class="home-icon">🏷️</div>
+
+                <h4>Categories</h4>
+
+                <p>
+                    Browse books easily by their categories.
+                </p>
+
+                <a asp-controller="Category"
+                   asp-action="Index"
+                   class="btn btn-primary">
+                    View Categories
+                </a>
+            </div>
+        </div>
+
+        <!-- Available Books -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="home-card h-100 text-center">
+                <div class="home-icon">✅</div>
+
+                <h4>Available Books</h4>
+
+                <p>
+                    Find books that are currently available for borrowing.
+                </p>
+
+                <a asp-controller="Book"
+                   asp-action="Available"
+                   class="btn btn-success">
+                    Available Books
+                </a>
+            </div>
+        </div>
+
+    </div>
+    
+
+</div>
+
