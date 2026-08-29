@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace LibrarySystem.Models;
 
@@ -13,14 +14,16 @@ public class Borrowing
     [Display(Name = "Book")]
     public int BookId { get; set; }
 
-    public Book Book { get; set; } = null!;
+    [ValidateNever]
+    public Book? Book { get; set; }
 
     [Required]
     [ForeignKey(nameof(User))]
     [Display(Name = "User")]
     public string UserId { get; set; } = string.Empty;
 
-    public ApplicationUser User { get; set; } = null!;
+    [ValidateNever]
+    public ApplicationUser? User { get; set; }
 
     [Required]
     [Display(Name = "Borrow Date")]

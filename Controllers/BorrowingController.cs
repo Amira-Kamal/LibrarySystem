@@ -14,24 +14,28 @@ public class BorrowingController : Controller
     private readonly LibraryDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
 
-    public BorrowingController(
-        LibraryDbContext context,
-        UserManager<ApplicationUser> userManager)
+
+public BorrowingController(
+    LibraryDbContext context,
+    UserManager<ApplicationUser> userManager)
     {
         _context = context;
         _userManager = userManager;
     }
 
+    // Admin: View all borrowings
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Index()
     {
-        var borrowings = _context.Borrowings
+        var borrowings = await _context.Borrowings
             .Include(b => b.Book)
-            .Include(b => b.User);
+            .Include(b => b.User)
+            .ToListAsync();
 
-        return View(await borrowings.ToListAsync());
+        return View(borrowings);
     }
 
+    // View borrowing details
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null)
@@ -40,7 +44,7 @@ public class BorrowingController : Controller
         var borrowing = await _context.Borrowings
             .Include(b => b.Book)
             .Include(b => b.User)
-            .FirstOrDefaultAsync(m => m.Id == id);
+            .FirstOrDefaultAsync(b => b.Id == id);
 
         if (borrowing == null)
             return NotFound();
@@ -53,66 +57,92 @@ public class BorrowingController : Controller
         return View(borrowing);
     }
 
-    public IActionResult Create()
+    // Display borrowing page
+    public IActionResult Create(int? bookId)
     {
         ViewData["BookId"] = new SelectList(
-            _context.Books.Where(b => b.AvailableCopies > 0),
+            _context.Books
+                .Where(b => b.AvailableCopies > 0),
             "BookId",
-            "Title"
+            "Title",
+            bookId
         );
 
         return View();
     }
 
+    // Create borrowing
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Borrowing borrowing)
     {
+        // User and Book navigation properties are not entered from the form
         ModelState.Remove("Book");
         ModelState.Remove("User");
+        ModelState.Remove("UserId");
 
-        var book = await _context.Books.FindAsync(borrowing.BookId);
+        var book = await _context.Books
+            .FirstOrDefaultAsync(b => b.BookId == borrowing.BookId);
 
-        if (book == null || book.AvailableCopies <= 0)
+        if (book == null)
         {
-            ModelState.AddModelError("", "Book is not available.");
+            ModelState.AddModelError("", "Please select a valid book.");
+        }
+        else if (book.AvailableCopies <= 0)
+        {
+            ModelState.AddModelError("", "This book is not available.");
         }
 
-        if (ModelState.IsValid && book != null && book.AvailableCopies > 0)
+        if (!ModelState.IsValid)
         {
-            borrowing.UserId = _userManager.GetUserId(User)!;
-            borrowing.BorrowDate = DateTime.Now;
-            borrowing.ReturnDate = null;
+            ViewData["BookId"] = new SelectList(
+                _context.Books
+                    .Where(b => b.AvailableCopies > 0),
+                "BookId",
+                "Title",
+                borrowing.BookId
+            );
 
-            book.AvailableCopies--;
-
-            _context.Borrowings.Add(borrowing);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(MyBorrowings));
+            return View(borrowing);
         }
 
-        ViewData["BookId"] = new SelectList(
-            _context.Books.Where(b => b.AvailableCopies > 0),
-            "BookId",
-            "Title",
-            borrowing.BookId
-        );
+        var userId = _userManager.GetUserId(User);
 
-        return View(borrowing);
+        if (userId == null)
+            return Challenge();
+
+        borrowing.UserId = userId;
+        borrowing.BorrowDate = DateTime.Now;
+        borrowing.ReturnDate = null;
+
+        // Decrease available copies
+        book.AvailableCopies--;
+
+        _context.Borrowings.Add(borrowing);
+
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction(nameof(MyBorrowings));
     }
 
+    // Current user's borrowed books
     public async Task<IActionResult> MyBorrowings()
     {
         var userId = _userManager.GetUserId(User);
 
-        var borrowings = _context.Borrowings
-            .Include(b => b.Book)
-            .Where(b => b.UserId == userId && b.ReturnDate == null);
+        if (userId == null)
+            return Challenge();
 
-        return View(await borrowings.ToListAsync());
+        var borrowings = await _context.Borrowings
+            .Include(b => b.Book)
+            .Where(b => b.UserId == userId && b.ReturnDate == null)
+            .OrderByDescending(b => b.BorrowDate)
+            .ToListAsync();
+
+        return View(borrowings);
     }
 
+    // Return borrowed book
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Return(int id)
@@ -131,15 +161,19 @@ public class BorrowingController : Controller
 
         if (borrowing.ReturnDate != null)
         {
-            TempData["Error"] = "Book already returned.";
+            TempData["Error"] = "Book has already been returned.";
             return RedirectToAction(nameof(MyBorrowings));
         }
 
         borrowing.ReturnDate = DateTime.Now;
+
+        // Increase available copies
         borrowing.Book.AvailableCopies++;
 
         await _context.SaveChangesAsync();
 
         return RedirectToAction(nameof(MyBorrowings));
     }
+
+
 }

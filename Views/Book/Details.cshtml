@@ -1,131 +1,152 @@
 @model LibrarySystem.Models.Book
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Book Details";
 }
 
-<h1>Details</h1>
+<div class="row justify-content-center">
+    <div class="col-md-9">
 
-<div>
-    <h4>Book</h4>
-    <hr />
+        <div class="card shadow-sm">
+            <div class="row g-0">
 
-    <dl class="row">
+                <div class="col-md-4 text-center p-4">
+                    @if (!string.IsNullOrEmpty(Model.Image))
+                    {
+                        <img src="@Model.Image"
+                             alt="@Model.Title"
+                             class="img-fluid rounded shadow-sm"
+                             style="max-height: 400px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-center bg-light rounded"
+                             style="height: 300px;">
+                            <span style="font-size: 70px;">📖</span>
+                        </div>
+                    }
+                </div>
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
+                <div class="col-md-8">
+                    <div class="card-body p-4">
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
+                        <h2 class="mb-3">@Model.Title</h2>
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ISBN)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ISBN)
-        </dd>
+                        <p class="text-muted">
+                            @Model.Description
+                        </p>
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PublishYear)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PublishYear)
-        </dd>
+                        <hr />
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.AvailableCopies)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.AvailableCopies)
-        </dd>
+                        <dl class="row">
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.TotalCopies)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.TotalCopies)
-        </dd>
+                            <dt class="col-sm-4">ISBN</dt>
+                            <dd class="col-sm-8">@Model.ISBN</dd>
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Image)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Image)
-        </dd>
+                            <dt class="col-sm-4">Publish Year</dt>
+                            <dd class="col-sm-8">@Model.PublishYear</dd>
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.FilePath)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.FilePath)
-        </dd>
+                            <dt class="col-sm-4">Available Copies</dt>
+                            <dd class="col-sm-8">
+                                @Model.AvailableCopies / @Model.TotalCopies
+                            </dd>
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Category)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Category.Name)
-        </dd>
+                            <dt class="col-sm-4">Category</dt>
+                            <dd class="col-sm-8">
+                                @Model.Category?.Name
+                            </dd>
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Author)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Author.FirstName)
-        </dd>
+                            <dt class="col-sm-4">Author</dt>
+                            <dd class="col-sm-8">
+                                @Model.Author?.FirstName @Model.Author?.LastName
+                            </dd>
 
-    </dl>
-</div>
+                        </dl>
 
-<hr />
+                        <div class="mt-4">
 
-@if (!string.IsNullOrEmpty(Model.FilePath))
-{
-    <a asp-action="Read"
-       asp-route-id="@Model.BookId"
-       class="btn btn-primary">
-        اقرأ الآن
-    </a>
-}
-else
-{
-    <span class="text-muted">
-        النسخة الإلكترونية غير متاحة حاليًا
-    </span>
-}
+                            @if (Model.AvailableCopies > 0 &&
+                                                        User.Identity?.IsAuthenticated == true &&
+                                                        !User.IsInRole("Admin"))
+                            {
+                                <a asp-controller="Borrowing"
+                                   asp-action="Create"
+                                   asp-route-bookId="@Model.BookId"
+                                   class="btn btn-success">
+                                    Borrow Now
+                                </a>
+                            }
 
-<!-- رفع ملف PDF -->
-<form asp-action="UploadFile"
-      asp-route-id="@Model.BookId"
-      method="post"
-      enctype="multipart/form-data"
-      class="mt-3">
+                            @if (!string.IsNullOrEmpty(Model.FilePath))
+                            {
+                                <a asp-action="Read"
+                                   asp-route-id="@Model.BookId"
+                                   class="btn btn-primary">
+                                    📖 Read Now
+                                </a>
+                            }
 
-    <div class="form-group mb-2">
-        <label>رفع/تحديث ملف PDF</label>
+                        </div>
 
-        <input type="file"
-               name="file"
-               accept=".pdf"
-               class="form-control" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+
+                    <h5>Manage Book File</h5>
+
+                    <form asp-action="UploadFile"
+                          asp-route-id="@Model.BookId"
+                          method="post"
+                          enctype="multipart/form-data">
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Upload / Update PDF
+                            </label>
+
+                            <input type="file"
+                                   name="file"
+                                   accept=".pdf"
+                                   class="form-control" />
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-success">
+                            Upload PDF
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+        }
+
+        <div class="mt-4">
+
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="Edit"
+                   asp-route-id="@Model.BookId"
+                   class="btn btn-warning">
+                    Edit
+                </a>
+            }
+
+            <a asp-action="Index"
+               class="btn btn-secondary">
+                Back to Books
+            </a>
+
+        </div>
+
     </div>
+    
 
-    <button type="submit" class="btn btn-success">
-        رفع الملف
-    </button>
-</form>
-
-<hr />
-
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.BookId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
 </div>
