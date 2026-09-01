@@ -1,7 +1,6 @@
 using LibrarySystem.Data;
 using LibrarySystem.Models;
-using LibrarySystem.Data;
-using LibrarySystem.Models;
+using LibrarySystem.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,6 +32,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
 var app = builder.Build();
 
@@ -85,3 +86,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
