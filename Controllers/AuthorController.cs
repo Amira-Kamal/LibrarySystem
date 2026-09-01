@@ -1,105 +1,113 @@
-﻿using LibrarySystem.Data;
-using LibrarySystem.Models;
+﻿using LibrarySystem.Models;
+using LibrarySystem.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
-namespace LibrarySystem.Controllers;
-
-[Authorize(Roles = "Admin")]
-public class AuthorController : Controller
+namespace LibrarySystem.Controllers
 {
-    private readonly LibraryDbContext _context;
-
-    public AuthorController(LibraryDbContext context)
+    public class AuthorController : Controller
     {
-        _context = context;
-    }
+        private readonly IAuthorRepository _authorRepository;
 
-    [AllowAnonymous]
-    public async Task<IActionResult> Index()
-    {
-        return View(await _context.Authors.ToListAsync());
-    }
-
-    [AllowAnonymous]
-    public async Task<IActionResult> Details(int? id)
-    {
-        if (id == null)
-            return NotFound();
-
-        var author = await _context.Authors
-            .FirstOrDefaultAsync(m => m.AuthorId == id);
-
-        return author == null ? NotFound() : View(author);
-    }
-
-    public IActionResult Create()
-    {
-        return View();
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Author author)
-    {
-        if (ModelState.IsValid)
+        public AuthorController(IAuthorRepository authorRepository)
         {
-            _context.Add(author);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            _authorRepository = authorRepository;
         }
 
-        return View(author);
-    }
-
-    public async Task<IActionResult> Edit(int? id)
-    {
-        if (id == null)
-            return NotFound();
-
-        var author = await _context.Authors.FindAsync(id);
-        return author == null ? NotFound() : View(author);
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, Author author)
-    {
-        if (id != author.AuthorId)
-            return NotFound();
-
-        if (ModelState.IsValid)
+        // GET: /Author
+        [HttpGet]
+        public IActionResult Index()
         {
-            _context.Update(author);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            var authors = _authorRepository.GetAll();
+            return View(authors);
         }
 
-        return View(author);
-    }
+        // GET: /Author/Details/{id}
+        [HttpGet]
+        public IActionResult Details(int id)
+        {
+            var author = _authorRepository.GetById(id);
+            if (author == null)
+            {
+                return NotFound();
+            }
+            return View(author);
+        }
 
-    public async Task<IActionResult> Delete(int? id)
-    {
-        if (id == null)
-            return NotFound();
+        // GET: /Author/Create
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View();
+        }
 
-        var author = await _context.Authors
-            .FirstOrDefaultAsync(m => m.AuthorId == id);
+        // POST: /Author/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(Author author)
+        {
+            if (ModelState.IsValid)
+            {
+                _authorRepository.Add(author);
+                _authorRepository.Save();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(author);
+        }
 
-        return author == null ? NotFound() : View(author);
-    }
+        // GET: /Author/Edit/{id}
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Edit(int id)
+        {
+            var author = _authorRepository.GetById(id);
+            if (author == null)
+            {
+                return NotFound();
+            }
+            return View(author);
+        }
 
-    [HttpPost, ActionName("Delete")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
-    {
-        var author = await _context.Authors.FindAsync(id);
+        // POST: /Author/Edit
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(Author author)
+        {
+            if (ModelState.IsValid)
+            {
+                _authorRepository.Update(author);
+                _authorRepository.Save();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(author);
+        }
 
-        if (author != null)
-            _context.Authors.Remove(author);
+        // GET: /Author/Delete/{id}
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Delete(int id)
+        {
+            var author = _authorRepository.GetById(id);
+            if (author == null)
+            {
+                return NotFound();
+            }
+            return View(author);
+        }
 
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        // POST: /Author/Delete
+        [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var author = _authorRepository.GetById(id);
+            if (author != null)
+            {
+                _authorRepository.Delete(id);
+                _authorRepository.Save();
+            }
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
