@@ -1,5 +1,6 @@
 ﻿using LibrarySystem.Data;
 using LibrarySystem.Models;
+using LibrarySystem.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -52,7 +53,24 @@ public class BookController : Controller
         if (book == null)
             return NotFound();
 
-        return View(book);
+        var viewModel = new BookViewModel
+        {
+            BookId = book.BookId,
+            Title = book.Title,
+            Description = book.Description,
+            ISBN = book.ISBN,
+            PublishYear = book.PublishYear,
+            AvailableCopies = book.AvailableCopies,
+            TotalCopies = book.TotalCopies,
+            Image = book.Image,
+            FilePath = book.FilePath,
+            CategoryName = book.Category.Name,
+            AuthorFirstName = book.Author.FirstName,
+            AuthorLastName =book.Author.LastName
+
+        };     
+
+        return View(viewModel);
     }
 
     [Authorize(Roles = "Admin")]
