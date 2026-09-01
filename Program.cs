@@ -8,8 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Connection String
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+    ?? throw new InvalidOperationException(
+        "Connection string 'DefaultConnection' not found.");
 
+// Database
 builder.Services.AddDbContext<LibraryDbContext>(options =>
     options.UseSqlServer(connectionString));
 
@@ -25,12 +27,17 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<LibraryDbContext>()
 .AddDefaultTokenProviders();
 
+// Application Cookie
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
+// Borrowing Repository
+builder.Services.AddScoped<IBorrowingRepository, BorrowingRepository>();
+
+// MVC
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -40,18 +47,27 @@ var app = builder.Build();
 // Seed Roles & Admin User
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var roleManager =
+        scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    var userManager =
+        scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
     string[] roles = { "Admin", "User" };
+
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
+        {
             await roleManager.CreateAsync(new IdentityRole(role));
+        }
     }
 
     var adminEmail = "admin@library.com";
-    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+    var adminUser =
+        await userManager.FindByEmailAsync(adminEmail);
+
     if (adminUser == null)
     {
         adminUser = new ApplicationUser
@@ -59,12 +75,16 @@ using (var scope = app.Services.CreateScope())
             UserName = adminEmail,
             Email = adminEmail,
             FullName = "System Admin",
-           
             EmailConfirmed = true
         };
+
         await userManager.CreateAsync(adminUser, "Admin123");
-        await userManager.AddToRoleAsync(adminUser, "Admin");
+
+        await userManager.AddToRoleAsync(
+            adminUser,
+            "Admin");
     }
+
     SeedData.Initialize(scope.ServiceProvider);
 }
 
@@ -76,11 +96,16 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseStaticFiles();
+
 app.UseRouting();
+
 app.UseAuthentication();
+
 app.UseAuthorization();
 
+// Default Route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

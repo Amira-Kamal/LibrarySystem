@@ -1,5 +1,6 @@
 ﻿using LibrarySystem.Data;
 using LibrarySystem.Models;
+using LibrarySystem.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,14 +13,16 @@ namespace LibrarySystem.Controllers;
 public class BorrowingController : Controller
 {
     private readonly LibraryDbContext _context;
+    private readonly IBorrowingRepository _borrowingRepository;
     private readonly UserManager<ApplicationUser> _userManager;
 
-
-public BorrowingController(
-    LibraryDbContext context,
-    UserManager<ApplicationUser> userManager)
+    public BorrowingController(
+        LibraryDbContext context,
+        IBorrowingRepository borrowingRepository,
+        UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _borrowingRepository = borrowingRepository;
         _userManager = userManager;
     }
 
@@ -27,10 +30,7 @@ public BorrowingController(
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Index()
     {
-        var borrowings = await _context.Borrowings
-            .Include(b => b.Book)
-            .Include(b => b.User)
-            .ToListAsync();
+        var borrowings = await _borrowingRepository.GetAllAsync();
 
         return View(borrowings);
     }
@@ -41,10 +41,7 @@ public BorrowingController(
         if (id == null)
             return NotFound();
 
-        var borrowing = await _context.Borrowings
-            .Include(b => b.Book)
-            .Include(b => b.User)
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var borrowing = await _borrowingRepository.GetByIdAsync(id.Value);
 
         if (borrowing == null)
             return NotFound();
@@ -57,7 +54,6 @@ public BorrowingController(
         return View(borrowing);
     }
 
-    // Display borrowing page
     public IActionResult Create(int? bookId)
     {
         ViewData["BookId"] = new SelectList(
@@ -115,17 +111,14 @@ public BorrowingController(
         borrowing.BorrowDate = DateTime.Now;
         borrowing.ReturnDate = null;
 
-        // Decrease available copies
         book.AvailableCopies--;
 
-        _context.Borrowings.Add(borrowing);
-
-        await _context.SaveChangesAsync();
+        await _borrowingRepository.AddAsync(borrowing);
+        await _borrowingRepository.SaveAsync();
 
         return RedirectToAction(nameof(MyBorrowings));
     }
 
-    // Current user's borrowed books
     public async Task<IActionResult> MyBorrowings()
     {
         var userId = _userManager.GetUserId(User);
@@ -133,11 +126,8 @@ public BorrowingController(
         if (userId == null)
             return Challenge();
 
-        var borrowings = await _context.Borrowings
-            .Include(b => b.Book)
-            .Where(b => b.UserId == userId && b.ReturnDate == null)
-            .OrderByDescending(b => b.BorrowDate)
-            .ToListAsync();
+        var borrowings =
+            await _borrowingRepository.GetByUserIdAsync(userId);
 
         return View(borrowings);
     }
@@ -147,16 +137,16 @@ public BorrowingController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Return(int id)
     {
-        var borrowing = await _context.Borrowings
-            .Include(b => b.Book)
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var borrowing =
+            await _borrowingRepository.GetByIdAsync(id);
 
         if (borrowing == null)
             return NotFound();
 
         var currentUserId = _userManager.GetUserId(User);
 
-        if (!User.IsInRole("Admin") && borrowing.UserId != currentUserId)
+        if (!User.IsInRole("Admin") &&
+            borrowing.UserId != currentUserId)
             return Forbid();
 
         if (borrowing.ReturnDate != null)
@@ -167,10 +157,12 @@ public BorrowingController(
 
         borrowing.ReturnDate = DateTime.Now;
 
-        // Increase available copies
-        borrowing.Book.AvailableCopies++;
+        if (borrowing.Book != null)
+        {
+            borrowing.Book.AvailableCopies++;
+        }
 
-        await _context.SaveChangesAsync();
+        await _borrowingRepository.SaveAsync();
 
         return RedirectToAction(nameof(MyBorrowings));
     }

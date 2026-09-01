@@ -8,7 +8,6 @@
     <div class="row justify-content-center">
         <div class="col-md-6">
 
-           
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
 
@@ -20,7 +19,9 @@
 
                     <hr />
 
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Create"
+                          method="post"
+                          id="borrowForm">
 
                         @Html.AntiForgeryToken()
 
@@ -29,26 +30,40 @@
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="BookId" class="form-label">
+
+                            <label asp-for="BookId"
+                                   class="form-label">
                                 Book
                             </label>
 
                             <select asp-for="BookId"
                                     class="form-select"
-                                    asp-items="ViewBag.BookId">
-                                <option value="">-- Select a Book --</option>
+                                    asp-items="ViewBag.BookId"
+                                    id="BookId">
+
+                                <option value="">
+                                    -- Select a Book --
+                                </option>
+
                             </select>
 
                             <span asp-validation-for="BookId"
-                                  class="text-danger">
+                                  class="text-danger"
+                                  id="bookError">
                             </span>
+
+                            <div id="bookSuccess"
+                                 class="text-success mt-2"
+                                 style="display:none;">
+                            </div>
+
                         </div>
 
                         <div class="d-flex gap-2 mt-4">
 
                             <button type="submit"
                                     class="btn btn-success">
-                               Borrow Book
+                                Borrow Book
                             </button>
 
                             <a asp-controller="Book"
@@ -66,14 +81,38 @@
 
         </div>
     </div>
-    
-
 </div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
+<script>
 
+    $(document).ready(function () {
+
+        $("#BookId").change(function () {
+
+            var bookId = $(this).val();
+
+            $("#bookError").text("");
+            $("#bookSuccess").hide();
+
+            if (bookId === "") {
+
+                $("#bookError")
+                    .text("Please select a book.");
+
+                return;
+            }
+
+            var bookName =
+                $("#BookId option:selected").text();
+
+            $("#bookSuccess")
+                .text("Book selected: " + bookName)
+                .fadeIn();
+
+        });
+
+    });
+
+</script>
