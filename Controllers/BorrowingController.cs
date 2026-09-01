@@ -26,6 +26,7 @@ public class BorrowingController : Controller
         _userManager = userManager;
     }
 
+    // Admin: View all borrowings
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Index()
     {
@@ -34,6 +35,7 @@ public class BorrowingController : Controller
         return View(borrowings);
     }
 
+    // View borrowing details
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null)
@@ -65,10 +67,12 @@ public class BorrowingController : Controller
         return View();
     }
 
+    // Create borrowing
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Borrowing borrowing)
     {
+        // User and Book navigation properties are not entered from the form
         ModelState.Remove("Book");
         ModelState.Remove("User");
         ModelState.Remove("UserId");
@@ -128,6 +132,7 @@ public class BorrowingController : Controller
         return View(borrowings);
     }
 
+    // Return borrowed book
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Return(int id)
@@ -161,4 +166,6 @@ public class BorrowingController : Controller
 
         return RedirectToAction(nameof(MyBorrowings));
     }
+
+
 }
