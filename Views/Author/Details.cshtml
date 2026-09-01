@@ -1,0 +1,75 @@
+@model LibrarySystem.Models.Author
+
+@{
+    ViewData["Title"] = "Author Details";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+
+        
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+
+                <h2 class="mb-3">Author Details</h2>
+
+                <hr />
+
+                <dl class="row">
+
+                    <dt class="col-sm-4">
+                        First Name
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Model.FirstName
+                    </dd>
+
+                    <dt class="col-sm-4">
+                        Last Name
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Model.LastName
+                    </dd>
+
+                    <dt class="col-sm-4">
+                        Bio
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Model.Bio
+                    </dd>
+
+                    <dt class="col-sm-4">
+                        Nationality
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Model.Nationality
+                    </dd>
+
+                </dl>
+
+                <div class="mt-4">
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Edit"
+                           asp-route-id="@Model.AuthorId"
+                           class="btn btn-warning">
+                            Edit
+                        </a>
+                    }
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary">
+                        Back to List
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    
+
+</div>
+

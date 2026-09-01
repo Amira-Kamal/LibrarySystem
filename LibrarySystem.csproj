@@ -16,4 +16,9 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Author\" />
+    <Folder Include="Views\Category\" />
+  </ItemGroup>
+
 </Project>

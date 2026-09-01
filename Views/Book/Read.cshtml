@@ -1,0 +1,13 @@
+﻿@model LibrarySystem.Models.Book
+
+<h2>@Model.Title</h2>
+
+<div style="width:100%; height:85vh; border:1px solid #ccc;">
+    <iframe src="~/lib/pdfjs/web/viewer.html?file=@Model.FilePath"
+            width="100%" height="100%" style="border:none;">
+    </iframe>
+</div>
+
+<a asp-action="Details" asp-route-id="@Model.BookId" class="btn btn-secondary mt-3">
+   Back to book details
+</a>

@@ -1,0 +1,71 @@
+@model IEnumerable<LibrarySystem.Models.Category>
+
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>Categories</h1>
+        <p class="text-muted mb-0">Browse all book categories</p>
+    </div>
+    
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Create" class="btn btn-primary">
+            + Add Category
+        </a>
+    }
+
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Name)
+                </th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+
+        
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+
+                    <td class="text-center">
+                        <a asp-action="Details"
+                           asp-route-id="@item.CategoryId"
+                           class="btn btn-info btn-sm text-white">
+                            Details
+                        </a>
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-action="Edit"
+                               asp-route-id="@item.CategoryId"
+                               class="btn btn-warning btn-sm">
+                                Edit
+                            </a>
+
+                            <a asp-action="Delete"
+                               asp-route-id="@item.CategoryId"
+                               class="btn btn-danger btn-sm">
+                                Delete
+                            </a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    
+
+</div>
+

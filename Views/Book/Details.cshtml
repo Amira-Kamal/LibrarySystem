@@ -1,0 +1,152 @@
+@model LibrarySystem.Models.Book
+
+@{
+    ViewData["Title"] = "Book Details";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-9">
+
+        <div class="card shadow-sm">
+            <div class="row g-0">
+
+                <div class="col-md-4 text-center p-4">
+                    @if (!string.IsNullOrEmpty(Model.Image))
+                    {
+                        <img src="@Model.Image"
+                             alt="@Model.Title"
+                             class="img-fluid rounded shadow-sm"
+                             style="max-height: 400px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-center bg-light rounded"
+                             style="height: 300px;">
+                            <span style="font-size: 70px;">📖</span>
+                        </div>
+                    }
+                </div>
+
+                <div class="col-md-8">
+                    <div class="card-body p-4">
+
+                        <h2 class="mb-3">@Model.Title</h2>
+
+                        <p class="text-muted">
+                            @Model.Description
+                        </p>
+
+                        <hr />
+
+                        <dl class="row">
+
+                            <dt class="col-sm-4">ISBN</dt>
+                            <dd class="col-sm-8">@Model.ISBN</dd>
+
+                            <dt class="col-sm-4">Publish Year</dt>
+                            <dd class="col-sm-8">@Model.PublishYear</dd>
+
+                            <dt class="col-sm-4">Available Copies</dt>
+                            <dd class="col-sm-8">
+                                @Model.AvailableCopies / @Model.TotalCopies
+                            </dd>
+
+                            <dt class="col-sm-4">Category</dt>
+                            <dd class="col-sm-8">
+                                @Model.Category?.Name
+                            </dd>
+
+                            <dt class="col-sm-4">Author</dt>
+                            <dd class="col-sm-8">
+                                @Model.Author?.FirstName @Model.Author?.LastName
+                            </dd>
+
+                        </dl>
+
+                        <div class="mt-4">
+
+                            @if (Model.AvailableCopies > 0 &&
+                                                        User.Identity?.IsAuthenticated == true &&
+                                                        !User.IsInRole("Admin"))
+                            {
+                                <a asp-controller="Borrowing"
+                                   asp-action="Create"
+                                   asp-route-bookId="@Model.BookId"
+                                   class="btn btn-success">
+                                    Borrow Now
+                                </a>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.FilePath))
+                            {
+                                <a asp-action="Read"
+                                   asp-route-id="@Model.BookId"
+                                   class="btn btn-primary">
+                                    📖 Read Now
+                                </a>
+                            }
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+
+                    <h5>Manage Book File</h5>
+
+                    <form asp-action="UploadFile"
+                          asp-route-id="@Model.BookId"
+                          method="post"
+                          enctype="multipart/form-data">
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Upload / Update PDF
+                            </label>
+
+                            <input type="file"
+                                   name="file"
+                                   accept=".pdf"
+                                   class="form-control" />
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-success">
+                            Upload PDF
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+        }
+
+        <div class="mt-4">
+
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="Edit"
+                   asp-route-id="@Model.BookId"
+                   class="btn btn-warning">
+                    Edit
+                </a>
+            }
+
+            <a asp-action="Index"
+               class="btn btn-secondary">
+                Back to Books
+            </a>
+
+        </div>
+
+    </div>
+    
+
+</div>

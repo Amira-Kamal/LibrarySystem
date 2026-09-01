@@ -1,0 +1,108 @@
+@model LibrarySystem.Models.Borrowing
+
+@{
+    ViewData["Title"] = "Borrowing Details";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+
+                <h2 class="mb-3">?? Borrowing Details</h2>
+
+                <hr />
+
+                <dl class="row">
+
+                    <dt class="col-sm-4">
+                        Book
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Model.Book?.Title
+                    </dd>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <dt class="col-sm-4">
+                            User
+                        </dt>
+                        <dd class="col-sm-8">
+                            @Model.User?.FullName
+                        </dd>
+                    }
+
+                    <dt class="col-sm-4">
+                        Borrow Date
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Model.BorrowDate.ToString("dd/MM/yyyy")
+                    </dd>
+
+                    <dt class="col-sm-4">
+                        Return Date
+                    </dt>
+                    <dd class="col-sm-8">
+                        @if (Model.ReturnDate.HasValue)
+                        {
+                            @Model.ReturnDate.Value.ToString("dd/MM/yyyy")
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not returned yet</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">
+                        Status
+                    </dt>
+                    <dd class="col-sm-8">
+                        @if (Model.ReturnDate.HasValue)
+                        {
+                            <span class="badge bg-success">
+                                Returned
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">
+                                Borrowed
+                            </span>
+                        }
+                    </dd>
+
+                </dl>
+
+                <div class="mt-4">
+
+                    @if (!Model.ReturnDate.HasValue)
+                    {
+                        <form asp-action="Return"
+                              asp-route-id="@Model.Id"
+                              method="post"
+                              class="d-inline">
+
+                            <button type="submit"
+                                    class="btn btn-success">
+                                Return Book
+                            </button>
+
+                        </form>
+                    }
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary">
+                        Back to List
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    
+
+</div>
+

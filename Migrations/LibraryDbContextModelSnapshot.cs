@@ -46,8 +46,7 @@ namespace LibrarySystem.Migrations
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -104,8 +103,7 @@ namespace LibrarySystem.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AuthorId"));
 
                     b.Property<string>("Bio")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -144,8 +142,11 @@ namespace LibrarySystem.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ISBN")
                         .IsRequired()
@@ -178,11 +179,11 @@ namespace LibrarySystem.Migrations
 
             modelBuilder.Entity("LibrarySystem.Models.Borrowing", b =>
                 {
-                    b.Property<int>("BorrowingId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BorrowingId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("BookId")
                         .HasColumnType("int");
@@ -197,7 +198,7 @@ namespace LibrarySystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("BorrowingId");
+                    b.HasKey("Id");
 
                     b.HasIndex("BookId");
 
@@ -385,7 +386,7 @@ namespace LibrarySystem.Migrations
                         .IsRequired();
 
                     b.HasOne("LibrarySystem.Models.ApplicationUser", "User")
-                        .WithMany("Borrowings")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -444,11 +445,6 @@ namespace LibrarySystem.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("LibrarySystem.Models.ApplicationUser", b =>
-                {
-                    b.Navigation("Borrowings");
                 });
 
             modelBuilder.Entity("LibrarySystem.Models.Author", b =>

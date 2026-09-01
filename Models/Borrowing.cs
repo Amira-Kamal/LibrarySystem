@@ -1,23 +1,34 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
-namespace LibrarySystem.Models
+namespace LibrarySystem.Models;
+
+public class Borrowing
 {
-    public class Borrowing
-    {
-        public int BorrowingId { get; set; }
+    [Key]
+    public int Id { get; set; }
 
-        public int BookId { get; set; }
+    [Required]
+    [ForeignKey(nameof(Book))]
+    [Display(Name = "Book")]
+    public int BookId { get; set; }
 
-        public string UserId { get; set; } = string.Empty;
+    [ValidateNever]
+    public Book? Book { get; set; }
 
-        [Required]
-        public DateTime BorrowDate { get; set; }
+    [Required]
+    [ForeignKey(nameof(User))]
+    [Display(Name = "User")]
+    public string UserId { get; set; } = string.Empty;
 
-        public DateTime? ReturnDate { get; set; }
+    [ValidateNever]
+    public ApplicationUser? User { get; set; }
 
-        // Navigation Properties
-        public Book Book { get; set; } = null!;
+    [Required]
+    [Display(Name = "Borrow Date")]
+    public DateTime BorrowDate { get; set; } = DateTime.Now;
 
-        public ApplicationUser User { get; set; } = null!;
-    }
+    [Display(Name = "Return Date")]
+    public DateTime? ReturnDate { get; set; }
 }
