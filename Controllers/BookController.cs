@@ -1,59 +1,80 @@
 ﻿using LibrarySystem.Data;
 using LibrarySystem.Models;
+using LibrarySystem.Repositories;
+using LibrarySystem.Repostries;
+using LibrarySystem.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibrarySystem.Controllers;
 
 public class BookController : Controller
 {
+    private readonly IBookRepository _bookRepository;
     private readonly LibraryDbContext _context;
     private readonly IWebHostEnvironment _env;
 
     public BookController(
+        IBookRepository bookRepository,
         LibraryDbContext context,
         IWebHostEnvironment env)
     {
+        _bookRepository = bookRepository;
         _context = context;
         _env = env;
     }
 
+
     public async Task<IActionResult> Index()
     {
-        var books = _context.Books
-            .Include(b => b.Category)
-            .Include(b => b.Author);
+        var books = await _bookRepository.GetAllAsync();
 
-        return View(await books.ToListAsync());
+        return View(books);
     }
+
 
     public async Task<IActionResult> Available()
     {
-        var books = _context.Books
-            .Include(b => b.Category)
-            .Include(b => b.Author)
-            .Where(b => b.AvailableCopies > 0);
+        var books = await _bookRepository.GetAvailableAsync();
 
-        return View("Index", await books.ToListAsync());
+        return View("Index", books);
     }
+
 
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null)
             return NotFound();
 
-        var book = await _context.Books
-            .Include(b => b.Category)
-            .Include(b => b.Author)
-            .FirstOrDefaultAsync(m => m.BookId == id);
+        var book = await _bookRepository.GetByIdAsync(id.Value);
 
         if (book == null)
             return NotFound();
 
-        return View(book);
+        var viewModel = new BookViewModel
+        {
+            BookId = book.BookId,
+            Title = book.Title,
+            Description = book.Description,
+            ISBN = book.ISBN,
+            PublishYear = book.PublishYear,
+            AvailableCopies = book.AvailableCopies,
+            TotalCopies = book.TotalCopies,
+            Image = book.Image,
+            FilePath = book.FilePath,
+
+            CategoryName = book.Category.Name,
+
+            AuthorFirstName = book.Author.FirstName,
+            AuthorLastName = book.Author.LastName
+        };
+
+        return View(viewModel);
     }
+
 
     [Authorize(Roles = "Admin")]
     public IActionResult Create()
@@ -73,6 +94,8 @@ public class BookController : Controller
         return View();
     }
 
+
+
     [Authorize(Roles = "Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -84,8 +107,7 @@ public class BookController : Controller
 
         if (ModelState.IsValid)
         {
-            _context.Books.Add(book);
-            await _context.SaveChangesAsync();
+            await _bookRepository.AddAsync(book);
 
             return RedirectToAction(nameof(Index));
         }
@@ -107,13 +129,14 @@ public class BookController : Controller
         return View(book);
     }
 
+
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null)
             return NotFound();
 
-        var book = await _context.Books.FindAsync(id);
+        var book = await _bookRepository.FindAsync(id.Value);
 
         if (book == null)
             return NotFound();
@@ -134,6 +157,8 @@ public class BookController : Controller
 
         return View(book);
     }
+
+
 
     [Authorize(Roles = "Admin")]
     [HttpPost]
@@ -149,8 +174,7 @@ public class BookController : Controller
 
         if (ModelState.IsValid)
         {
-            _context.Update(book);
-            await _context.SaveChangesAsync();
+            await _bookRepository.UpdateAsync(book);
 
             return RedirectToAction(nameof(Index));
         }
@@ -172,16 +196,15 @@ public class BookController : Controller
         return View(book);
     }
 
+
+
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null)
             return NotFound();
 
-        var book = await _context.Books
-            .Include(b => b.Category)
-            .Include(b => b.Author)
-            .FirstOrDefaultAsync(m => m.BookId == id);
+        var book = await _bookRepository.GetByIdAsync(id.Value);
 
         if (book == null)
             return NotFound();
@@ -189,39 +212,50 @@ public class BookController : Controller
         return View(book);
     }
 
+
+
     [Authorize(Roles = "Admin")]
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var book = await _context.Books.FindAsync(id);
-
-        if (book != null)
-        {
-            _context.Books.Remove(book);
-            await _context.SaveChangesAsync();
-        }
+        await _bookRepository.DeleteAsync(id);
 
         return RedirectToAction(nameof(Index));
     }
 
-    [AllowAnonymous]
+
+
+    [Authorize]
     public async Task<IActionResult> Read(int id)
     {
-        var book = await _context.Books.FindAsync(id);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var hasBorrowed = await _context.Borrowings
+            .AnyAsync(b => b.BookId == id && b.UserId == userId);
+
+        if (!hasBorrowed)
+        {
+            return View("~/Views/Account/AccessDenied.cshtml");
+        }
+
+        var book = await _bookRepository.FindAsync(id);
 
         if (book == null || string.IsNullOrEmpty(book.FilePath))
-            return NotFound("الكتاب غير متاح للقراءة حاليًا.");
+            return NotFound("Book not available for reading currently.");
 
         return View(book);
     }
+
+
+
 
     [Authorize(Roles = "Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadFile(int id, IFormFile file)
     {
-        var book = await _context.Books.FindAsync(id);
+        var book = await _bookRepository.FindAsync(id);
 
         if (book == null)
             return NotFound();
@@ -229,26 +263,43 @@ public class BookController : Controller
         if (file == null || file.Length == 0)
             return RedirectToAction(nameof(Details), new { id });
 
+
+        
+
         if (Path.GetExtension(file.FileName).ToLower() != ".pdf")
             return RedirectToAction(nameof(Details), new { id });
 
-        var folderPath = Path.Combine(_env.WebRootPath, "BookFiles");
+
+        
+
+        var folderPath = Path.Combine(
+            _env.WebRootPath,
+            "BookFiles"
+        );
 
         if (!Directory.Exists(folderPath))
             Directory.CreateDirectory(folderPath);
 
-        var fileName = $"{id}_{Guid.NewGuid()}.pdf";
-        var fullPath = Path.Combine(folderPath, fileName);
 
-        using (var stream = new FileStream(fullPath, FileMode.Create))
+        var fileName = $"{id}_{Guid.NewGuid()}.pdf";
+
+        var fullPath = Path.Combine(
+            folderPath,
+            fileName
+        );
+
+
+        using (var stream = new FileStream(
+            fullPath,
+            FileMode.Create))
         {
             await file.CopyToAsync(stream);
         }
 
+
         book.FilePath = $"/BookFiles/{fileName}";
 
-        _context.Update(book);
-        await _context.SaveChangesAsync();
+        await _bookRepository.UpdateAsync(book);
 
         return RedirectToAction(nameof(Details), new { id });
     }

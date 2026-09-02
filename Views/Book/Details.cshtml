@@ -1,4 +1,4 @@
-@model LibrarySystem.Models.Book
+@model BookViewModel
 
 @{
     ViewData["Title"] = "Book Details";
@@ -53,12 +53,12 @@
 
                             <dt class="col-sm-4">Category</dt>
                             <dd class="col-sm-8">
-                                @Model.Category?.Name
+                                @Model.CategoryName
                             </dd>
 
                             <dt class="col-sm-4">Author</dt>
                             <dd class="col-sm-8">
-                                @Model.Author?.FirstName @Model.Author?.LastName
+                                @Model.AuthorFirstName @Model.AuthorLastName
                             </dd>
 
                         </dl>
