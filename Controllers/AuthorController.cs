@@ -35,6 +35,7 @@ namespace LibrarySystem.Controllers
 
         // GET: /Author/Create
         [HttpGet]
+        [Authorize]
         public IActionResult Create()
         {
             return View();
@@ -43,6 +44,7 @@ namespace LibrarySystem.Controllers
         // POST: /Author/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public IActionResult Create(Author author)
         {
             if (ModelState.IsValid)

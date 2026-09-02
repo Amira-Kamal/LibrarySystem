@@ -1,6 +1,7 @@
 using LibrarySystem.Data;
 using LibrarySystem.Models;
 using LibrarySystem.Repositories;
+using LibrarySystem.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,6 +40,8 @@ builder.Services.AddScoped<IBorrowingRepository, BorrowingRepository>();
 
 // Author Repository
 builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
+// Category Repository
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 // MVC
 builder.Services.AddControllersWithViews();

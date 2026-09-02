@@ -1,55 +1,194 @@
-@model LibrarySystem.Models.Category
+
+@model LibrarySystem.ViewModels.CategoryDetailsViewModel
 
 @{
     ViewData["Title"] = "Category Details";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-7">
+<div class="container py-5">
 
-        
-        <div class="card shadow-sm">
-            <div class="card-body p-4">
+    <!-- Category Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <span class="text-muted small">LIBRARY / CATEGORIES</span>
+            <h1 class="fw-bold mt-1 mb-0">@Model.Name</h1>
+        </div>
 
-                <h2 class="mb-3">Category Details</h2>
+        <a asp-action="Edit"
+           asp-route-id="@Model.CategoryId"
+           class="btn btn-dark px-4">
+            <i class="bi bi-pencil-square me-2"></i>
+            Edit Category
+        </a>
+    </div>
 
-                <hr />
+    <!-- Category Info -->
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
 
-                <dl class="row">
+                <div class="col-md-2 text-center">
+                    <div class="category-icon">
+                        <i class="bi bi-bookmarks-fill"></i>
+                    </div>
+                </div>
 
-                    <dt class="col-sm-4">
-                        Category Name
-                    </dt>
+                <div class="col-md-10">
+                    <p class="text-muted mb-1">Category Name</p>
+                    <h3 class="fw-semibold mb-2">@Model.Name</h3>
 
-                    <dd class="col-sm-8">
-                        @Model.Name
-                    </dd>
-
-                </dl>
-
-                <div class="mt-4">
-
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <a asp-action="Edit"
-                           asp-route-id="@Model.CategoryId"
-                           class="btn btn-warning">
-                            Edit
-                        </a>
-                    }
-
-                    <a asp-action="Index"
-                       class="btn btn-secondary">
-                        Back to Categories
-                    </a>
-
+                    <span class="badge bg-light text-dark border">
+                        <i class="bi bi-book me-1"></i>
+                        @Model.Books.Count Book(s)
+                    </span>
                 </div>
 
             </div>
         </div>
+    </div>
+
+    <!-- Books Section -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-1">Books in this Category</h3>
+            <p class="text-muted mb-0">
+                Explore all books belonging to <strong>@Model.Name</strong>.
+            </p>
+        </div>
+
+        <span class="badge rounded-pill bg-dark px-3 py-2">
+            @Model.Books.Count books
+        </span>
+    </div>
+
+    @if (Model.Books.Any())
+    {
+        <div class="row g-4">
+
+            @foreach (var book in Model.Books)
+            {
+                <div class="col-md-6 col-lg-4">
+
+                    <div class="card h-100 border-0 shadow-sm book-card">
+
+                        <div class="card-body p-4">
+
+                            <div class="d-flex align-items-start mb-3">
+
+                                <div class="book-icon me-3">
+                                    <i class="bi bi-book-fill"></i>
+                                </div>
+
+                                <div>
+                                    <h5 class="fw-bold mb-1">
+                                        @book.Title
+                                    </h5>
+
+                                    <small class="text-muted">
+                                        Book ID: @book.BookId
+                                    </small>
+                                </div>
+
+                            </div>
+
+                            <a asp-controller="Book"
+                               asp-action="Details"
+                               asp-route-id="@book.BookId"
+                               class="btn btn-outline-dark w-100">
+                                View Details
+                                <i class="bi bi-arrow-right ms-2"></i>
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm text-center py-5">
+            <div class="card-body">
+
+                <div class="empty-icon mb-3">
+                    <i class="bi bi-book"></i>
+                </div>
+
+                <h4 class="fw-bold">No Books Yet</h4>
+
+                <p class="text-muted mb-0">
+                    There are currently no books assigned to this category.
+                </p>
+
+            </div>
+        </div>
+    }
+
+    <!-- Navigation -->
+    <div class="mt-5 pt-3 border-top">
+
+        <a asp-action="Index"
+           class="btn btn-light border px-4">
+            <i class="bi bi-arrow-left me-2"></i>
+            Back to Categories
+        </a>
 
     </div>
-    
 
 </div>
+
+<style>
+
+    .category-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: #f1f3f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        margin: auto;
+    }
+
+    .book-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border-radius: 16px;
+    }
+
+    .book-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.10) !important;
+    }
+
+    .book-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: #f1f3f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .empty-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: #f1f3f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin: auto;
+    }
+
+</style>
+
+
 
