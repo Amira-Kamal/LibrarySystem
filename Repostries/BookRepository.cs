@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LibrarySystem.Repostries
 {
-    public class BookRepository
+    public class BookRepository : IBookRepository
     {
         private readonly LibraryDbContext _context;
 

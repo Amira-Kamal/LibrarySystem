@@ -1,6 +1,7 @@
 using LibrarySystem.Data;
 using LibrarySystem.Models;
 using LibrarySystem.Repositories;
+using LibrarySystem.Repostries;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,7 +32,9 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
+
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IBookRepository, BookRepository>();
 
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
