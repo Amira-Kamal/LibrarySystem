@@ -37,6 +37,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 // Borrowing Repository
 builder.Services.AddScoped<IBorrowingRepository, BorrowingRepository>();
 
+// Author Repository
+builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
+
 // MVC
 builder.Services.AddControllersWithViews();
 
