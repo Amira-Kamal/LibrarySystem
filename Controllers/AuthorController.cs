@@ -44,7 +44,7 @@ namespace LibrarySystem.Controllers
         // POST: /Author/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create(Author author)
         {
             if (ModelState.IsValid)
